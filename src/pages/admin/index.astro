@@ -1,0 +1,641 @@
+---
+export const prerender = false;
+import fs from 'fs';
+import path from 'path';
+
+const contentPath = path.join(process.cwd(), 'src', 'data', 'content.json');
+const content = JSON.parse(fs.readFileSync(contentPath, 'utf-8'));
+
+if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '/admin/logout') {
+  Astro.cookies.delete('session', { path: '/' });
+  return Astro.redirect('/admin/login');
+}
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Portal – StratMENA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: #1f2937; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Header */
+    .header { background: #1a3a5c; color: white; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+    .header-logo { font-size: 1.25rem; font-weight: 800; }
+    .header-logo em { color: #c9a84c; font-style: normal; }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .btn-view { padding: 7px 14px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 7px; font-size: 0.8125rem; font-weight: 500; text-decoration: none; transition: background 0.2s; }
+    .btn-view:hover { background: rgba(255,255,255,0.2); }
+    .btn-logout { padding: 7px 14px; background: transparent; color: rgba(255,255,255,0.7); border: none; border-radius: 7px; font-size: 0.8125rem; font-weight: 500; cursor: pointer; transition: color 0.2s; }
+    .btn-logout:hover { color: white; }
+
+    /* Layout */
+    .layout { display: flex; flex: 1; min-height: 0; }
+
+    /* Sidebar */
+    .sidebar { width: 220px; background: white; border-right: 1px solid #e5e7eb; padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+    .sidebar-label { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; padding: 8px 12px 4px; }
+    .nav-item { padding: 9px 12px; border-radius: 8px; font-size: 0.875rem; font-weight: 500; color: #4b5563; cursor: pointer; display: flex; align-items: center; gap: 9px; transition: all 0.15s; user-select: none; }
+    .nav-item:hover { background: #f3f4f6; color: #1a3a5c; }
+    .nav-item.active { background: #eff6ff; color: #1a3a5c; font-weight: 600; }
+    .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    /* Main */
+    .main { flex: 1; overflow-y: auto; padding: 28px 32px; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .section-title { font-size: 1.375rem; font-weight: 700; color: #1a3a5c; margin-bottom: 4px; }
+    .section-desc { font-size: 0.875rem; color: #6b7280; margin-bottom: 24px; }
+
+    /* Cards */
+    .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
+    .card-title { font-size: 0.9375rem; font-weight: 700; color: #1f2937; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 8px; }
+
+    /* Fields */
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 0.8125rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
+    .field input, .field textarea, .field select {
+      width: 100%; padding: 9px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+      font-size: 0.875rem; font-family: inherit; outline: none; transition: border-color 0.2s; color: #1f2937;
+      background: white;
+    }
+    .field input:focus, .field textarea:focus { border-color: #1a3a5c; }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field .hint { font-size: 0.75rem; color: #9ca3af; margin-top: 4px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Image upload */
+    .img-upload { border: 2px dashed #d1d5db; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: border-color 0.2s; position: relative; }
+    .img-upload:hover { border-color: #1a3a5c; }
+    .img-upload input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .img-upload-text { color: #6b7280; font-size: 0.8125rem; }
+    .img-upload-text strong { color: #1a3a5c; }
+    .img-preview { max-width: 100%; max-height: 180px; border-radius: 8px; margin-top: 10px; display: none; }
+
+    /* When image is set – disable the file-input overlay so action buttons are clickable */
+    .img-upload.has-image { cursor: default; border-style: solid; border-color: #d1d5db; }
+    .img-upload.has-image:hover { border-color: #d1d5db; }
+    .img-upload.has-image input[type="file"] { display: none; }
+
+    /* Action row below the preview */
+    .img-actions { display: none; margin-top: 10px; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .img-actions.visible { display: flex; }
+    .btn-img-change { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; border-radius: 7px; padding: 7px 14px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-img-change:hover { background: #e5e7eb; }
+    .btn-img-remove { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 7px; padding: 7px 14px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-img-remove:hover { background: #fee2e2; }
+
+    /* Array items */
+    .array-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 10px; position: relative; }
+    .array-item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .array-item-label { font-size: 0.8125rem; font-weight: 600; color: #6b7280; }
+    .btn-remove { background: #fef2f2; color: #dc2626; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-remove:hover { background: #fee2e2; }
+    .btn-add { background: #eff6ff; color: #1a3a5c; border: 1.5px dashed #93c5fd; border-radius: 8px; padding: 10px 16px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; width: 100%; text-align: center; transition: background 0.2s; margin-top: 4px; }
+    .btn-add:hover { background: #dbeafe; }
+
+    /* Save button */
+    .save-bar { position: sticky; bottom: 0; background: white; border-top: 1px solid #e5e7eb; padding: 14px 32px; display: flex; align-items: center; gap: 12px; }
+    .btn-save { padding: 11px 28px; background: #1a3a5c; color: white; border: none; border-radius: 9px; font-size: 0.9375rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    .btn-save:hover { background: #2e5f8a; }
+    .btn-save:disabled { background: #9ca3af; cursor: default; }
+    .save-status { font-size: 0.875rem; color: #6b7280; }
+    .save-status.success { color: #16a34a; }
+    .save-status.error { color: #dc2626; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .sidebar-label, .nav-item span { display: none; }
+      .nav-item { justify-content: center; }
+      .main { padding: 16px; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">Strat<em>MENA</em> <span style="font-size:0.8rem;font-weight:400;opacity:0.6;margin-left:6px;">Admin Portal</span></div>
+  <div class="header-actions">
+    <a href="/" target="_blank" class="btn-view">View Site</a>
+    <form method="POST" action="/admin/logout" style="display:inline">
+      <button type="submit" class="btn-logout">Sign out</button>
+    </form>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-label">Content</div>
+    <div class="nav-item active" data-section="site"><span class="icon">⚙️</span><span>Site Settings</span></div>
+    <div class="nav-item" data-section="hero"><span class="icon">🏠</span><span>Hero Banner</span></div>
+    <div class="nav-item" data-section="about"><span class="icon">👥</span><span>About</span></div>
+    <div class="nav-item" data-section="services"><span class="icon">🗺️</span><span>Services</span></div>
+    <div class="nav-item" data-section="why"><span class="icon">✅</span><span>Why Us</span></div>
+    <div class="nav-item" data-section="contact"><span class="icon">📬</span><span>Contact</span></div>
+  </nav>
+
+  <!-- Content Area -->
+  <div class="main" id="main-area">
+
+    <!-- Site Settings -->
+    <div class="section active" id="section-site">
+      <div class="section-title">Site Settings</div>
+      <div class="section-desc">Global settings shared across the entire site.</div>
+      <div class="card">
+        <div class="card-title">🏢 Company Info</div>
+        <div class="field">
+          <label>Company Name</label>
+          <input type="text" data-path="site.name" value={content.site.name} />
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Email Address</label>
+            <input type="email" data-path="site.email" value={content.site.email} />
+          </div>
+          <div class="field">
+            <label>WhatsApp Number <span style="font-weight:400;color:#9ca3af">(without +)</span></label>
+            <input type="text" data-path="site.whatsapp" value={content.site.whatsapp} placeholder="971500000000" />
+          </div>
+        </div>
+        <div class="field">
+          <label>WhatsApp Default Message</label>
+          <textarea data-path="site.whatsapp_message">{content.site.whatsapp_message}</textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🖼️ Logo</div>
+        <div class="field">
+          <label>Logo Image</label>
+          <div class="img-upload" id="upload-logo">
+            <input type="file" accept="image/*" data-upload-for="site.logo" />
+            <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop<br/>PNG, JPG, SVG, WebP · Max 5MB</div>
+            {content.site.logo && <img class="img-preview" src={content.site.logo} style="display:block" alt="Logo" />}
+          </div>
+          <input type="hidden" data-path="site.logo" value={content.site.logo} />
+          <p class="hint">Leave empty to use text logo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="section" id="section-hero">
+      <div class="section-title">Hero Banner</div>
+      <div class="section-desc">The first section visitors see at the top of the page.</div>
+      <div class="card">
+        <div class="card-title">📝 Content</div>
+        <div class="field">
+          <label>Badge Text</label>
+          <input type="text" data-path="hero.badge" value={content.hero.badge} />
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Heading Line 1</label>
+            <input type="text" data-path="hero.heading_line1" value={content.hero.heading_line1} />
+          </div>
+          <div class="field">
+            <label>Heading Highlight <span style="font-weight:400;color:#c9a84c">(gold text)</span></label>
+            <input type="text" data-path="hero.heading_highlight" value={content.hero.heading_highlight} />
+          </div>
+        </div>
+        <div class="field">
+          <label>Subheading Paragraph</label>
+          <textarea data-path="hero.subheading">{content.hero.subheading}</textarea>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Primary Button Text</label>
+            <input type="text" data-path="hero.cta_primary" value={content.hero.cta_primary} />
+          </div>
+          <div class="field">
+            <label>Secondary Button Text</label>
+            <input type="text" data-path="hero.cta_secondary" value={content.hero.cta_secondary} />
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🖼️ Background Image <span style="font-weight:400;font-size:0.8rem;color:#9ca3af">(optional – overlays on gradient)</span></div>
+        <div class="field">
+          <div class="img-upload">
+            <input type="file" accept="image/*" data-upload-for="hero.background_image" />
+            <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop</div>
+            {content.hero.background_image && <img class="img-preview" src={content.hero.background_image} style="display:block" alt="Hero bg" />}
+          </div>
+          <input type="hidden" data-path="hero.background_image" value={content.hero.background_image} />
+        </div>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="section" id="section-about">
+      <div class="section-title">About Section</div>
+      <div class="section-desc">The "About Us" section with your company description and key statistics.</div>
+      <div class="card">
+        <div class="card-title">📝 Text Content</div>
+        <div class="row">
+          <div class="field">
+            <label>Section Label</label>
+            <input type="text" data-path="about.section_label" value={content.about.section_label} />
+          </div>
+          <div class="field">
+            <label>Heading</label>
+            <input type="text" data-path="about.heading" value={content.about.heading} />
+          </div>
+        </div>
+        <div class="field">
+          <label>Paragraph 1</label>
+          <textarea data-path="about.paragraph1" style="min-height:100px">{content.about.paragraph1}</textarea>
+        </div>
+        <div class="field">
+          <label>Paragraph 2</label>
+          <textarea data-path="about.paragraph2" style="min-height:80px">{content.about.paragraph2}</textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🖼️ About Image</div>
+        <div class="field">
+          <div class="img-upload">
+            <input type="file" accept="image/*" data-upload-for="about.image" />
+            <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop</div>
+            {content.about.image && <img class="img-preview" src={content.about.image} style="display:block" alt="About" />}
+          </div>
+          <input type="hidden" data-path="about.image" value={content.about.image} />
+          <p class="hint">Displayed alongside the about text. Leave empty to show the stats grid only.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Statistics</div>
+        <div id="stats-container">
+          {content.about.stats.map((stat: any, i: number) => (
+            <div class="array-item" data-stats-index={i}>
+              <div class="array-item-header">
+                <span class="array-item-label">Stat {i + 1}</span>
+                <button class="btn-remove" data-remove-stat={i}>Remove</button>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label>Number / Value</label>
+                  <input type="text" data-path={`about.stats.${i}.number`} value={stat.number} placeholder="10+" />
+                </div>
+                <div class="field">
+                  <label>Label</label>
+                  <input type="text" data-path={`about.stats.${i}.label`} value={stat.label} placeholder="Years of Experience" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button class="btn-add" id="add-stat">+ Add Stat</button>
+      </div>
+    </div>
+
+    <!-- Services Section -->
+    <div class="section" id="section-services">
+      <div class="section-title">Services</div>
+      <div class="section-desc">Your service offerings shown as cards.</div>
+      <div class="card">
+        <div class="card-title">📝 Section Header</div>
+        <div class="row">
+          <div class="field">
+            <label>Section Label</label>
+            <input type="text" data-path="services.section_label" value={content.services.section_label} />
+          </div>
+          <div class="field">
+            <label>Heading</label>
+            <input type="text" data-path="services.heading" value={content.services.heading} />
+          </div>
+        </div>
+        <div class="field">
+          <label>Subheading</label>
+          <textarea data-path="services.subheading">{content.services.subheading}</textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🗂️ Service Cards</div>
+        <div id="services-container">
+          {content.services.items.map((item: any, i: number) => (
+            <div class="array-item" data-service-index={i}>
+              <div class="array-item-header">
+                <span class="array-item-label">Service {i + 1}</span>
+                <button class="btn-remove" data-remove-service={i}>Remove</button>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label>Icon (emoji)</label>
+                  <input type="text" data-path={`services.items.${i}.icon`} value={item.icon} />
+                </div>
+                <div class="field">
+                  <label>Title</label>
+                  <input type="text" data-path={`services.items.${i}.title`} value={item.title} />
+                </div>
+              </div>
+              <div class="field">
+                <label>Description</label>
+                <textarea data-path={`services.items.${i}.description`}>{item.description}</textarea>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button class="btn-add" id="add-service">+ Add Service</button>
+      </div>
+    </div>
+
+    <!-- Why Section -->
+    <div class="section" id="section-why">
+      <div class="section-title">Why Us</div>
+      <div class="section-desc">Reasons why clients should choose your firm.</div>
+      <div class="card">
+        <div class="card-title">📝 Section Header</div>
+        <div class="row">
+          <div class="field">
+            <label>Section Label</label>
+            <input type="text" data-path="why.section_label" value={content.why.section_label} />
+          </div>
+          <div class="field">
+            <label>Heading</label>
+            <input type="text" data-path="why.heading" value={content.why.heading} />
+          </div>
+        </div>
+        <div class="field">
+          <label>Subheading</label>
+          <textarea data-path="why.subheading">{content.why.subheading}</textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">✅ Reasons</div>
+        <div id="why-container">
+          {content.why.items.map((item: any, i: number) => (
+            <div class="array-item" data-why-index={i}>
+              <div class="array-item-header">
+                <span class="array-item-label">Reason {i + 1}</span>
+                <button class="btn-remove" data-remove-why={i}>Remove</button>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label>Icon (emoji)</label>
+                  <input type="text" data-path={`why.items.${i}.icon`} value={item.icon} />
+                </div>
+                <div class="field">
+                  <label>Title</label>
+                  <input type="text" data-path={`why.items.${i}.title`} value={item.title} />
+                </div>
+              </div>
+              <div class="field">
+                <label>Description</label>
+                <textarea data-path={`why.items.${i}.description`}>{item.description}</textarea>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button class="btn-add" id="add-why">+ Add Reason</button>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="section" id="section-contact">
+      <div class="section-title">Contact Section</div>
+      <div class="section-desc">The call-to-action section at the bottom of the page.</div>
+      <div class="card">
+        <div class="card-title">📝 Content</div>
+        <div class="row">
+          <div class="field">
+            <label>Section Label</label>
+            <input type="text" data-path="contact.section_label" value={content.contact.section_label} />
+          </div>
+          <div class="field">
+            <label>Heading</label>
+            <input type="text" data-path="contact.heading" value={content.contact.heading} />
+          </div>
+        </div>
+        <div class="field">
+          <label>Subheading</label>
+          <textarea data-path="contact.subheading">{content.contact.subheading}</textarea>
+        </div>
+        <div class="field">
+          <label>Footer Note <span style="font-weight:400;color:#9ca3af">(small text below buttons)</span></label>
+          <input type="text" data-path="contact.footer_note" value={content.contact.footer_note} />
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>WhatsApp Button Text</label>
+            <input type="text" data-path="contact.whatsapp_button" value={content.contact.whatsapp_button} />
+          </div>
+          <div class="field">
+            <label>Email Button Text</label>
+            <input type="text" data-path="contact.email_button" value={content.contact.email_button} />
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- Save Bar -->
+<div class="save-bar">
+  <button class="btn-save" id="save-btn">Save Changes</button>
+  <span class="save-status" id="save-status"></span>
+</div>
+
+<script is:inline>
+  // Tab navigation
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('section-' + item.dataset.section).classList.add('active');
+    });
+  });
+
+  // Build content object from all data-path inputs
+  function getContentObject() {
+    const obj = {};
+    document.querySelectorAll('[data-path]').forEach(el => {
+      const path = el.dataset.path.split('.');
+      let cur = obj;
+      for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        const nextKey = path[i + 1];
+        const nextIsNum = !isNaN(parseInt(nextKey));
+        if (!(key in cur)) cur[key] = nextIsNum ? [] : {};
+        cur = cur[key];
+      }
+      const lastKey = path[path.length - 1];
+      const val = el.tagName === 'TEXTAREA' ? el.value : el.value;
+      if (!isNaN(parseInt(lastKey))) {
+        cur[parseInt(lastKey)] = val;
+      } else {
+        cur[lastKey] = val;
+      }
+    });
+    return obj;
+  }
+
+  // ── Image field manager ────────────────────────────────────────────────
+  function initImageField(fileInput) {
+    const pathKey  = fileInput.dataset.uploadFor;
+    const zone     = fileInput.closest('.img-upload');
+    const hidden   = document.querySelector('[data-path="' + pathKey + '"]');
+    const uploadText = zone.querySelector('.img-upload-text');
+
+    // Ensure a preview <img> exists inside the zone
+    let preview = zone.querySelector('.img-preview');
+    if (!preview) {
+      preview = document.createElement('img');
+      preview.className = 'img-preview';
+      preview.alt = '';
+      zone.appendChild(preview);
+    }
+
+    // Inject the action row (Change + Remove) once, as a sibling after the zone
+    const actions = document.createElement('div');
+    actions.className = 'img-actions';
+    actions.innerHTML =
+      '<button type="button" class="btn-img-change">&#x21bb; Change image</button>' +
+      '<button type="button" class="btn-img-remove">&#x2715; Remove image</button>';
+    zone.insertAdjacentElement('afterend', actions);
+
+    const changeBtn = actions.querySelector('.btn-img-change');
+    const removeBtn = actions.querySelector('.btn-img-remove');
+
+    function showImage(url) {
+      hidden.value = url;
+      preview.src  = url;
+      preview.style.display = 'block';
+      uploadText.style.display = 'none';
+      zone.classList.add('has-image');
+      actions.classList.add('visible');
+    }
+
+    function clearImage() {
+      hidden.value  = '';
+      preview.src   = '';
+      preview.style.display = 'none';
+      uploadText.style.display = '';
+      zone.classList.remove('has-image');
+      actions.classList.remove('visible');
+      fileInput.value = '';
+    }
+
+    // Initialise from server-rendered value
+    if (hidden && hidden.value) showImage(hidden.value);
+
+    // Upload new file
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const origText = uploadText.innerHTML;
+      uploadText.innerHTML = 'Uploading…';
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        const res  = await fetch('/api/upload-image', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.url) showImage(data.url);
+        else uploadText.innerHTML = origText;
+      } catch {
+        uploadText.innerHTML = origText;
+      }
+    });
+
+    // "Change" re-opens the file picker
+    changeBtn.addEventListener('click', () => {
+      zone.classList.remove('has-image');   // briefly re-enable input
+      fileInput.style.display = '';
+      fileInput.click();
+      // restore has-image style after picker closes (if still has value)
+      fileInput.addEventListener('change', () => {
+        if (!hidden.value) zone.classList.remove('has-image');
+      }, { once: true });
+    });
+
+    // "Remove" wipes the image
+    removeBtn.addEventListener('click', clearImage);
+  }
+
+  document.querySelectorAll('[data-upload-for]').forEach(initImageField);
+  // ── End image field manager ─────────────────────────────────────────────
+
+  // Save
+  document.getElementById('save-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('save-btn');
+    const status = document.getElementById('save-status');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    status.textContent = '';
+    status.className = 'save-status';
+    try {
+      const content = getContentObject();
+      const res = await fetch('/api/save-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content),
+      });
+      const data = await res.json();
+      if (data.success) {
+        status.textContent = 'Changes saved successfully!';
+        status.className = 'save-status success';
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (err) {
+      status.textContent = 'Save failed: ' + err.message;
+      status.className = 'save-status error';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Changes';
+      setTimeout(() => { status.textContent = ''; status.className = 'save-status'; }, 4000);
+    }
+  });
+
+  // Dynamic array management: Stats
+  let statsCount = document.querySelectorAll('[data-stats-index]').length;
+  document.getElementById('add-stat').addEventListener('click', () => {
+    const container = document.getElementById('stats-container');
+    const i = statsCount++;
+    const div = document.createElement('div');
+    div.className = 'array-item';
+    div.dataset.statsIndex = i;
+    div.innerHTML = `<div class="array-item-header"><span class="array-item-label">Stat ${i + 1}</span><button class="btn-remove" data-remove-stat="${i}">Remove</button></div><div class="row"><div class="field"><label>Number / Value</label><input type="text" data-path="about.stats.${i}.number" placeholder="10+" /></div><div class="field"><label>Label</label><input type="text" data-path="about.stats.${i}.label" placeholder="Years of Experience" /></div></div>`;
+    container.appendChild(div);
+    div.querySelector('.btn-remove').addEventListener('click', () => div.remove());
+  });
+  document.querySelectorAll('[data-remove-stat]').forEach(btn => btn.addEventListener('click', () => btn.closest('.array-item').remove()));
+
+  // Dynamic array management: Services
+  let svcCount = document.querySelectorAll('[data-service-index]').length;
+  document.getElementById('add-service').addEventListener('click', () => {
+    const container = document.getElementById('services-container');
+    const i = svcCount++;
+    const div = document.createElement('div');
+    div.className = 'array-item';
+    div.dataset.serviceIndex = i;
+    div.innerHTML = `<div class="array-item-header"><span class="array-item-label">Service ${i + 1}</span><button class="btn-remove" data-remove-service="${i}">Remove</button></div><div class="row"><div class="field"><label>Icon (emoji)</label><input type="text" data-path="services.items.${i}.icon" /></div><div class="field"><label>Title</label><input type="text" data-path="services.items.${i}.title" /></div></div><div class="field"><label>Description</label><textarea data-path="services.items.${i}.description"></textarea></div>`;
+    container.appendChild(div);
+    div.querySelector('.btn-remove').addEventListener('click', () => div.remove());
+  });
+  document.querySelectorAll('[data-remove-service]').forEach(btn => btn.addEventListener('click', () => btn.closest('.array-item').remove()));
+
+  // Dynamic array management: Why
+  let whyCount = document.querySelectorAll('[data-why-index]').length;
+  document.getElementById('add-why').addEventListener('click', () => {
+    const container = document.getElementById('why-container');
+    const i = whyCount++;
+    const div = document.createElement('div');
+    div.className = 'array-item';
+    div.dataset.whyIndex = i;
+    div.innerHTML = `<div class="array-item-header"><span class="array-item-label">Reason ${i + 1}</span><button class="btn-remove" data-remove-why="${i}">Remove</button></div><div class="row"><div class="field"><label>Icon (emoji)</label><input type="text" data-path="why.items.${i}.icon" /></div><div class="field"><label>Title</label><input type="text" data-path="why.items.${i}.title" /></div></div><div class="field"><label>Description</label><textarea data-path="why.items.${i}.description"></textarea></div>`;
+    container.appendChild(div);
+    div.querySelector('.btn-remove').addEventListener('click', () => div.remove());
+  });
+  document.querySelectorAll('[data-remove-why]').forEach(btn => btn.addEventListener('click', () => btn.closest('.array-item').remove()));
+</script>
+</body>
+</html>

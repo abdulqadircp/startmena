@@ -1,0 +1,17 @@
+---
+import { getContent } from '../utils/content';
+const { site } = getContent();
+const year = new Date().getFullYear();
+---
+
+<footer class="bg-gray-900 text-gray-400 py-8">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
+    <span class="text-lg font-bold" style="color: white;">
+      Strat<span style="color: #c9a84c;">MENA</span>
+    </span>
+    <span>&copy; {year} {site.name}. All rights reserved.</span>
+    <div class="flex gap-6">
+      <a href={`mailto:${site.email}`} class="hover:text-white transition-colors">{site.email}</a>
+    </div>
+  </div>
+</footer>

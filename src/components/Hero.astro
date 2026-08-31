@@ -1,0 +1,138 @@
+---
+import { getContent, whatsappUrl } from '../utils/content';
+const { hero, site } = getContent();
+const whatsapp = whatsappUrl(site);
+---
+
+<section class="hero-section min-h-screen flex items-center pt-16 relative overflow-hidden"
+  style={hero.background_image
+    ? `background: linear-gradient(135deg, rgba(26,58,92,0.92) 0%, rgba(46,95,138,0.85) 60%, rgba(26,58,92,0.92) 100%), url('${hero.background_image}') center/cover no-repeat`
+    : 'background: linear-gradient(135deg, #1a3a5c 0%, #2e5f8a 60%, #1a3a5c 100%)'}>
+
+  <!-- Floating orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Grid overlay -->
+  <div class="hero-grid"></div>
+
+  <div class="max-w-6xl mx-auto px-6 py-24 text-center text-white relative z-10">
+    <div class="animate-fade-up" style="animation-delay: 0.1s">
+      <div class="inline-block mb-6 px-4 py-1.5 rounded-full text-sm font-medium border border-white/20 bg-white/10 backdrop-blur-sm">
+        {hero.badge}
+      </div>
+    </div>
+
+    <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6 tracking-tight animate-fade-up" style="animation-delay: 0.2s">
+      {hero.heading_line1}<br />
+      <span class="gradient-text">{hero.heading_highlight}</span>
+    </h1>
+
+    <p class="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up" style="animation-delay: 0.35s">
+      {hero.subheading}
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up" style="animation-delay: 0.5s">
+      <a href="#contact" class="hero-btn-primary px-8 py-3.5 rounded-xl text-base font-semibold transition-all">
+        {hero.cta_primary}
+      </a>
+      <a href="#services" class="px-8 py-3.5 rounded-xl text-base font-semibold border border-white/30 hover:bg-white/10 transition-all hover:scale-105">
+        {hero.cta_secondary}
+      </a>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-indicator animate-fade-up" style="animation-delay: 0.8s">
+      <div class="scroll-dot"></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero-section { position: relative; }
+
+  /* Floating orbs */
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.25;
+    animation: float 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .orb-1 { width: 400px; height: 400px; background: #c9a84c; top: -100px; right: -80px; animation-delay: 0s; }
+  .orb-2 { width: 300px; height: 300px; background: #2e5f8a; bottom: -50px; left: -60px; animation-delay: 3s; }
+  .orb-3 { width: 200px; height: 200px; background: #c9a84c; top: 40%; left: 10%; animation-delay: 5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.05); }
+  }
+
+  /* Grid overlay */
+  .hero-grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #c9a84c 0%, #f0cc7a 50%, #c9a84c 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shine 3s linear infinite;
+  }
+  @keyframes shine {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  /* Primary button */
+  .hero-btn-primary {
+    background-color: #c9a84c;
+    color: #1a3a5c;
+    box-shadow: 0 4px 20px rgba(201, 168, 76, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .hero-btn-primary:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 30px rgba(201,168,76,0.5); }
+
+  /* Scroll indicator */
+  .scroll-indicator {
+    margin-top: 56px;
+    display: flex; justify-content: center;
+  }
+  .scroll-dot {
+    width: 26px; height: 42px;
+    border: 2px solid rgba(255,255,255,0.35);
+    border-radius: 13px;
+    position: relative;
+  }
+  .scroll-dot::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 8px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 2px;
+    animation: scroll-dot 1.8s ease-in-out infinite;
+  }
+  @keyframes scroll-dot {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  }
+
+  /* Entry animations */
+  .animate-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeUp 0.7s ease forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

@@ -1,0 +1,102 @@
+---
+import { getContent } from '../utils/content';
+const { site } = getContent();
+
+const links = [
+  { label: 'About', href: '#about' },
+  { label: 'Services', href: '#services' },
+  { label: 'Why StratMENA', href: '#why' },
+  { label: 'Contact', href: '#contact' },
+];
+---
+
+<header id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent">
+  <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2">
+      {site.logo ? (
+        <img src={site.logo} alt={site.name} class="h-9 w-auto" />
+      ) : (
+        <span class="text-xl font-bold tracking-tight navbar-logo-text">
+          Strat<span style="color: #c9a84c;">MENA</span>
+        </span>
+      )}
+    </a>
+
+    <ul class="hidden md:flex items-center gap-8">
+      {links.map(link => (
+        <li>
+          <a href={link.href} class="navbar-link text-sm font-medium transition-colors">{link.label}</a>
+        </li>
+      ))}
+    </ul>
+
+    <a
+      href="#contact"
+      id="navbar-cta"
+      class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all"
+      style="background-color: #1a3a5c;"
+    >
+      Get in Touch
+    </a>
+
+    <button id="menu-toggle" class="md:hidden p-2 rounded-lg transition-colors" aria-label="Toggle menu">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </nav>
+
+  <div id="mobile-menu" class="hidden md:hidden border-t bg-white px-6 pb-4">
+    <ul class="flex flex-col gap-3 pt-3">
+      {links.map(link => (
+        <li><a href={link.href} class="block text-sm font-medium text-gray-600 hover:text-[#1a3a5c]">{link.label}</a></li>
+      ))}
+      <li>
+        <a href="#contact" class="inline-flex mt-2 px-4 py-2 rounded-lg text-sm font-semibold text-white" style="background-color: #1a3a5c;">
+          Get in Touch
+        </a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<style>
+  #navbar { border-bottom: 1px solid transparent; }
+  #navbar.scrolled {
+    background: rgba(255,255,255,0.95) !important;
+    backdrop-filter: blur(12px);
+    border-bottom-color: #e5e7eb;
+    box-shadow: 0 1px 16px rgba(0,0,0,0.06);
+  }
+  /* At top: white logo text on dark hero */
+  .navbar-logo-text { color: white; }
+  .navbar-link { color: rgba(255,255,255,0.85); }
+  #navbar-cta { background-color: rgba(255,255,255,0.15) !important; border: 1px solid rgba(255,255,255,0.25); }
+
+  /* After scroll: dark text */
+  #navbar.scrolled .navbar-logo-text { color: #1a3a5c; }
+  #navbar.scrolled .navbar-link { color: #4b5563; }
+  #navbar.scrolled .navbar-link:hover { color: #1a3a5c; }
+  #navbar.scrolled #navbar-cta { background-color: #1a3a5c !important; border-color: transparent; }
+  #navbar.scrolled #menu-toggle { color: #374151; }
+  #menu-toggle { color: rgba(255,255,255,0.85); }
+</style>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  const toggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+
+  function updateNavbar() {
+    if (window.scrollY > 40) {
+      navbar?.classList.add('scrolled');
+    } else {
+      navbar?.classList.remove('scrolled');
+    }
+  }
+  window.addEventListener('scroll', updateNavbar, { passive: true });
+  updateNavbar();
+
+  toggle?.addEventListener('click', () => menu?.classList.toggle('hidden'));
+  menu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menu.classList.add('hidden')));
+</script>

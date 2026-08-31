@@ -1,0 +1,115 @@
+{
+  "site": {
+    "name": "StratMENA",
+    "email": "info@stratmena.com",
+    "whatsapp": "971500000000",
+    "whatsapp_message": "Hello StratMENA, I would like to discuss a strategic opportunity.",
+    "logo": ""
+  },
+  "hero": {
+    "badge": "Strategic Advisory · MENA Region",
+    "heading_line1": "Navigate the MENA Market",
+    "heading_highlight": "with Confidence",
+    "subheading": "StratMENA helps businesses unlock growth opportunities across the Middle East and North Africa through strategic insight, local expertise, and trusted partnerships.",
+    "cta_primary": "Start the Conversation",
+    "cta_secondary": "Explore Services",
+    "background_image": ""
+  },
+  "about": {
+    "section_label": "About Us",
+    "heading": "Your Strategic Partner in the MENA Region",
+    "paragraph1": "StratMENA is a boutique advisory firm dedicated to helping businesses navigate the unique opportunities and complexities of the Middle East and North Africa market. We combine deep regional knowledge with a global perspective to deliver results that matter.",
+    "paragraph2": "Whether you're entering the market for the first time or looking to expand your existing presence, our team provides the strategic clarity and on-the-ground support you need to succeed.",
+    "image": "",
+    "stats": [
+      {
+        "number": "10+",
+        "label": "Years of Regional Experience"
+      },
+      {
+        "number": "50+",
+        "label": "Clients Served Across MENA"
+      },
+      {
+        "number": "15+",
+        "label": "Markets Covered"
+      },
+      {
+        "number": "100%",
+        "label": "Commitment to Your Success"
+      }
+    ]
+  },
+  "services": {
+    "section_label": "What We Do",
+    "heading": "Our Services",
+    "subheading": "End-to-end strategic support to help your business thrive in the Middle East and North Africa.",
+    "items": [
+      {
+        "icon": "🗺️",
+        "title": "Market Entry Strategy",
+        "description": "Comprehensive market analysis, competitive landscape assessment, and entry roadmaps tailored to your business model and target markets."
+      },
+      {
+        "icon": "🤝",
+        "title": "Business Development",
+        "description": "Identifying and nurturing strategic partnerships, distributor networks, and key stakeholder relationships across the MENA region."
+      },
+      {
+        "icon": "📊",
+        "title": "Strategic Advisory",
+        "description": "Executive-level consulting on growth strategy, organizational design, and navigating the regulatory and cultural landscape of the region."
+      },
+      {
+        "icon": "🏛️",
+        "title": "Government Relations",
+        "description": "Facilitating engagement with government entities, regulatory bodies, and investment authorities to accelerate your business goals."
+      },
+      {
+        "icon": "🌐",
+        "title": "Regional Representation",
+        "description": "Acting as your on-the-ground representative to manage relationships, attend meetings, and represent your brand with credibility."
+      },
+      {
+        "icon": "📈",
+        "title": "Investment Advisory",
+        "description": "Guiding investors and businesses through due diligence, deal structuring, and opportunity identification across MENA markets."
+      }
+    ]
+  },
+  "why": {
+    "section_label": "Why Us",
+    "heading": "Why StratMENA",
+    "subheading": "We're not just consultants — we're your partners on the ground, invested in your long-term success in the region.",
+    "items": [
+      {
+        "icon": "🧭",
+        "title": "Deep Regional Expertise",
+        "description": "Our team has decades of combined experience working across Gulf, Levant, and North African markets — we know the nuances that matter."
+      },
+      {
+        "icon": "🔗",
+        "title": "Trusted Network",
+        "description": "Access an established network of decision-makers, investors, and government officials built over years of trusted relationships."
+      },
+      {
+        "icon": "🎯",
+        "title": "Results-Focused Approach",
+        "description": "We measure our success by yours. Every engagement is structured around clear outcomes and measurable milestones."
+      },
+      {
+        "icon": "🌍",
+        "title": "Global + Local Mindset",
+        "description": "We bridge international best practices with local insight — giving your business a competitive edge that purely global firms can't match."
+      }
+    ]
+  },
+  "contact": {
+    "section_label": "Get in Touch",
+    "heading": "Ready to Enter the MENA Market?",
+    "subheading": "Let's talk about your goals. Reach out via WhatsApp or email and we'll get back to you promptly.",
+    "footer_note": "Based in the MENA region · Available for international clients",
+    "whatsapp_button": "Chat on WhatsApp",
+    "email_button": "Send an Email"
+  }
+}
