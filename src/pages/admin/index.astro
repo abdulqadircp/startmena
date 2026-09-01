@@ -107,6 +107,46 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
     .save-status.success { color: #16a34a; }
     .save-status.error { color: #dc2626; }
 
+    /* Toggle switch */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+    .toggle-row label:first-child { font-size: 0.875rem; font-weight: 600; color: #374151; }
+    .toggle-row small { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; display: block; }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: #d1d5db; border-radius: 24px; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%;
+      background: white; left: 3px; top: 3px; transition: transform 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .toggle input:checked + .toggle-slider { background: #1a3a5c; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Radio options */
+    .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .radio-option { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color 0.2s, background 0.2s; display: block; }
+    .radio-option:has(input:checked) { border-color: #1a3a5c; background: #eff6ff; }
+    .radio-option input { display: none; }
+    .radio-option .opt-label { font-size: 0.875rem; font-weight: 600; color: #1f2937; }
+    .radio-option .opt-desc { font-size: 0.75rem; color: #6b7280; margin-top: 2px; }
+
+    /* Color picker */
+    .color-row { display: flex; align-items: center; gap: 8px; }
+    .color-swatch { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid #e5e7eb; cursor: pointer; padding: 2px; background: none; flex-shrink: 0; }
+    .color-swatch::-webkit-color-swatch-wrapper { padding: 0; border-radius: 5px; }
+    .color-swatch::-webkit-color-swatch { border: none; border-radius: 5px; }
+
+    /* Banner preview box */
+    .banner-preview-wrap { background: #f0f4f8; border-radius: 10px; padding: 16px; overflow: hidden; }
+    .preview-bar-demo { height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.8125rem; font-weight: 500; padding: 0 12px; }
+    .preview-popup-demo { border-radius: 12px; padding: 20px; max-width: 320px; margin: 0 auto; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .preview-popup-msg { font-size: 0.9375rem; font-weight: 700; margin-bottom: 6px; }
+    .preview-popup-sub { font-size: 0.8125rem; opacity: 0.8; margin-bottom: 12px; }
+    .preview-popup-cta { display: inline-block; padding: 7px 16px; border-radius: 7px; font-size: 0.8125rem; font-weight: 700; }
+
     /* Responsive */
     @media (max-width: 768px) {
       .sidebar { width: 60px; }
@@ -139,6 +179,7 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
     <div class="nav-item" data-section="services"><span class="icon">🗺️</span><span>Services</span></div>
     <div class="nav-item" data-section="why"><span class="icon">✅</span><span>Why Us</span></div>
     <div class="nav-item" data-section="contact"><span class="icon">📬</span><span>Contact</span></div>
+    <div class="nav-item" data-section="banner"><span class="icon">📢</span><span>Banner</span></div>
   </nav>
 
   <!-- Content Area -->
@@ -434,6 +475,107 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
       </div>
     </div>
 
+    <!-- Banner Section -->
+    <div class="section" id="section-banner">
+      <div class="section-title">Promotional Banner</div>
+      <div class="section-desc">Show a special offer, discount, or announcement to your visitors. Changes take effect as soon as you save.</div>
+
+      <!-- Settings card -->
+      <div class="card">
+        <div class="card-title">⚙️ Settings</div>
+        <div class="toggle-row" style="margin-bottom:16px;">
+          <div>
+            <div>Enable Banner</div>
+            <small>Toggle to show or hide the banner on the site</small>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="banner-enabled-cb" data-path="banner.enabled" checked={content.banner.enabled} />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="field">
+          <label>Display Type</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="banner_type" data-path="banner.type" value="bar" checked={content.banner.type === 'bar'} />
+              <div class="opt-label">Top Bar</div>
+              <div class="opt-desc">A slim strip pinned to the top of the page</div>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="banner_type" data-path="banner.type" value="popup" checked={content.banner.type === 'popup'} />
+              <div class="opt-label">Popup</div>
+              <div class="opt-desc">A modal card that appears after 1.5 seconds</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="toggle-row" style="margin-top:8px;">
+          <div>
+            <div>Allow visitors to dismiss</div>
+            <small>Shows a close (×) button. Once dismissed it won't reappear in the same session.</small>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" data-path="banner.dismissible" checked={content.banner.dismissible} />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Content card -->
+      <div class="card">
+        <div class="card-title">📝 Content</div>
+        <div class="field">
+          <label>Main Message</label>
+          <input type="text" id="banner-message" data-path="banner.message" value={content.banner.message} placeholder="🎉 Special Offer – Free consultation this month!" />
+        </div>
+        <div class="field">
+          <label>Sub-text <span style="font-weight:400;color:#9ca3af">(shown in popup only)</span></label>
+          <textarea id="banner-subtext" data-path="banner.subtext" style="min-height:60px">{content.banner.subtext}</textarea>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Button Text <span style="font-weight:400;color:#9ca3af">(optional)</span></label>
+            <input type="text" id="banner-cta-text" data-path="banner.cta_text" value={content.banner.cta_text} placeholder="Book Now" />
+          </div>
+          <div class="field">
+            <label>Button Link</label>
+            <input type="text" id="banner-cta-link" data-path="banner.cta_link" value={content.banner.cta_link} placeholder="#contact or https://..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Colors card -->
+      <div class="card">
+        <div class="card-title">🎨 Colors</div>
+        <div class="row">
+          <div class="field">
+            <label>Background Color</label>
+            <div class="color-row">
+              <input type="color" class="color-swatch" data-syncs-to="banner.bg_color" value={content.banner.bg_color} />
+              <input type="text" data-path="banner.bg_color" id="banner-bg-color" value={content.banner.bg_color} class="color-text-input" placeholder="#c9a84c" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Text Color</label>
+            <div class="color-row">
+              <input type="color" class="color-swatch" data-syncs-to="banner.text_color" value={content.banner.text_color} />
+              <input type="text" data-path="banner.text_color" id="banner-text-color" value={content.banner.text_color} class="color-text-input" placeholder="#1a3a5c" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live preview card -->
+      <div class="card">
+        <div class="card-title">👁️ Live Preview</div>
+        <p style="font-size:0.8125rem;color:#9ca3af;margin-bottom:12px;">Updates as you type — save to apply to the site.</p>
+        <div class="banner-preview-wrap" id="banner-preview-wrap">
+          <!-- injected by JS -->
+        </div>
+      </div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /layout -->
 
@@ -458,22 +600,22 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
   function getContentObject() {
     const obj = {};
     document.querySelectorAll('[data-path]').forEach(el => {
-      const path = el.dataset.path.split('.');
+      // Skip unchecked radio buttons — only the checked one writes its value
+      if (el.type === 'radio' && !el.checked) return;
+
+      const pathParts = el.dataset.path.split('.');
       let cur = obj;
-      for (let i = 0; i < path.length - 1; i++) {
-        const key = path[i];
-        const nextKey = path[i + 1];
-        const nextIsNum = !isNaN(parseInt(nextKey));
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        const key = pathParts[i];
+        const nextIsNum = !isNaN(parseInt(pathParts[i + 1]));
         if (!(key in cur)) cur[key] = nextIsNum ? [] : {};
         cur = cur[key];
       }
-      const lastKey = path[path.length - 1];
-      const val = el.tagName === 'TEXTAREA' ? el.value : el.value;
-      if (!isNaN(parseInt(lastKey))) {
-        cur[parseInt(lastKey)] = val;
-      } else {
-        cur[lastKey] = val;
-      }
+      const lastKey = pathParts[pathParts.length - 1];
+      // Checkboxes → boolean, everything else → string value
+      const val = el.type === 'checkbox' ? el.checked : el.value;
+      if (!isNaN(parseInt(lastKey))) cur[parseInt(lastKey)] = val;
+      else cur[lastKey] = val;
     });
     return obj;
   }
@@ -636,6 +778,53 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
     div.querySelector('.btn-remove').addEventListener('click', () => div.remove());
   });
   document.querySelectorAll('[data-remove-why]').forEach(btn => btn.addEventListener('click', () => btn.closest('.array-item').remove()));
+
+  // ── Color picker ↔ text input sync ─────────────────────────────────────
+  document.querySelectorAll('.color-swatch[data-syncs-to]').forEach(picker => {
+    const textInput = document.querySelector(`[data-path="${picker.dataset.syncsTo}"].color-text-input`);
+    picker.addEventListener('input', () => { if (textInput) textInput.value = picker.value; updateBannerPreview(); });
+    textInput?.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(textInput.value)) picker.value = textInput.value; updateBannerPreview(); });
+  });
+
+  // ── Banner live preview ─────────────────────────────────────────────────
+  function updateBannerPreview() {
+    const wrap = document.getElementById('banner-preview-wrap');
+    if (!wrap) return;
+
+    const type     = document.querySelector('input[name="banner_type"]:checked')?.value || 'bar';
+    const msg      = document.getElementById('banner-message')?.value || '';
+    const subtext  = document.getElementById('banner-subtext')?.value || '';
+    const ctaText  = document.getElementById('banner-cta-text')?.value || '';
+    const ctaLink  = document.getElementById('banner-cta-link')?.value || '#';
+    const bgColor  = document.getElementById('banner-bg-color')?.value || '#c9a84c';
+    const txtColor = document.getElementById('banner-text-color')?.value || '#1a3a5c';
+
+    if (type === 'bar') {
+      wrap.innerHTML = `
+        <div class="preview-bar-demo" style="background:${bgColor};color:${txtColor};">
+          <span>${msg || 'Your message here'}</span>
+          ${ctaText ? `<span style="border:1.5px solid ${txtColor};border-radius:4px;padding:2px 9px;font-size:0.75rem;font-weight:700;">${ctaText}</span>` : ''}
+          <span style="opacity:0.5;font-size:1rem;margin-left:auto;">×</span>
+        </div>`;
+    } else {
+      wrap.innerHTML = `
+        <div class="preview-popup-demo" style="background:${bgColor};color:${txtColor};">
+          <div class="preview-popup-msg">${msg || 'Your message here'}</div>
+          ${subtext ? `<div class="preview-popup-sub">${subtext}</div>` : ''}
+          ${ctaText ? `<div class="preview-popup-cta" style="background:${txtColor};color:${bgColor};">${ctaText}</div>` : ''}
+        </div>`;
+    }
+  }
+
+  // Trigger preview update on any banner field change
+  ['banner-message','banner-subtext','banner-cta-text','banner-cta-link','banner-bg-color','banner-text-color'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateBannerPreview);
+  });
+  document.querySelectorAll('input[name="banner_type"]').forEach(r => r.addEventListener('change', updateBannerPreview));
+
+  // Init preview on load
+  updateBannerPreview();
+  // ── End banner preview ──────────────────────────────────────────────────
 </script>
 </body>
 </html>

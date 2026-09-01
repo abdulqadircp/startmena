@@ -4,6 +4,18 @@ import path from 'path';
 export interface Stat  { number: string; label: string }
 export interface Card  { icon: string; title: string; description: string }
 
+export interface Banner {
+  enabled: boolean;
+  type: 'bar' | 'popup';
+  message: string;
+  subtext: string;
+  cta_text: string;
+  cta_link: string;
+  bg_color: string;
+  text_color: string;
+  dismissible: boolean;
+}
+
 export interface SiteContent {
   site: {
     name: string; email: string;
@@ -25,6 +37,7 @@ export interface SiteContent {
     section_label: string; heading: string; subheading: string;
     footer_note: string; whatsapp_button: string; email_button: string;
   };
+  banner: Banner;
 }
 
 const CONTENT_PATH = path.join(process.cwd(), 'src', 'data', 'content.json');

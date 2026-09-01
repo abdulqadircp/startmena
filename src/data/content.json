@@ -111,5 +111,16 @@
     "footer_note": "Based in the MENA region · Available for international clients",
     "whatsapp_button": "Chat on WhatsApp",
     "email_button": "Send an Email"
+  },
+  "banner": {
+    "enabled": false,
+    "type": "bar",
+    "message": "🎉 Special Offer – Free consultation this month!",
+    "subtext": "Limited spots available. Reach out today and get expert MENA market advice at no cost.",
+    "cta_text": "Book Now",
+    "cta_link": "#contact",
+    "bg_color": "#c9a84c",
+    "text_color": "#1a3a5c",
+    "dismissible": true
   }
 }
