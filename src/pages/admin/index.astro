@@ -87,6 +87,18 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
     .btn-img-remove { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 7px; padding: 7px 14px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .btn-img-remove:hover { background: #fee2e2; }
 
+    /* Recent uploads strip */
+    .recent-strip { margin-top: 12px; }
+    .recent-label { font-size: 0.75rem; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .recent-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+    .recent-thumb {
+      width: 72px; height: 72px; object-fit: cover; border-radius: 8px;
+      border: 2px solid #e5e7eb; cursor: pointer;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .recent-thumb:hover { border-color: #1a3a5c; transform: scale(1.06); }
+    .recent-thumb.selected { border-color: #c9a84c; box-shadow: 0 0 0 2px #c9a84c44; }
+
     /* Array items */
     .array-item { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; margin-bottom: 10px; position: relative; }
     .array-item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
@@ -681,6 +693,7 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
         const data = await res.json();
         if (data.url) {
           showImage(data.url);
+          refreshAllStrips();
         } else {
           uploadText.innerHTML = origText;
           alert('Upload failed: ' + (data.error || 'Unknown error'));
@@ -712,6 +725,7 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
           const data = await res.json();
           if (data.url) {
             showImage(data.url);
+            refreshAllStrips();
           } else {
             uploadText.innerHTML = origText;
             alert('Upload failed: ' + (data.error || 'Unknown error'));
@@ -727,9 +741,64 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
 
     // "Remove" wipes the image
     removeBtn.addEventListener('click', clearImage);
+
+    // ── Recent uploads strip for this field ──────────────────────────────
+    const strip = document.createElement('div');
+    strip.className = 'recent-strip';
+    actions.insertAdjacentElement('afterend', strip);
+    allStrips.push({ el: strip, onSelect: showImage });
+    renderStrip({ el: strip, onSelect: showImage });
+    // ─────────────────────────────────────────────────────────────────────
   }
 
-  document.querySelectorAll('[data-upload-for]').forEach(initImageField);
+  // ── Recent uploads gallery ─────────────────────────────────────────────
+  let recentUrls = [];
+  const allStrips = [];
+
+  function renderStrip(strip) {
+    strip.el.innerHTML = '';
+    if (recentUrls.length === 0) return;
+    const label = document.createElement('p');
+    label.className = 'recent-label';
+    label.textContent = 'Recent uploads — click to use';
+    strip.el.appendChild(label);
+    const grid = document.createElement('div');
+    grid.className = 'recent-grid';
+    recentUrls.forEach(url => {
+      const thumb = document.createElement('img');
+      thumb.src = url;
+      thumb.className = 'recent-thumb';
+      thumb.title = url.split('/').pop();
+      thumb.addEventListener('click', () => {
+        grid.querySelectorAll('.recent-thumb').forEach(t => t.classList.remove('selected'));
+        thumb.classList.add('selected');
+        strip.onSelect(url);
+      });
+      grid.appendChild(thumb);
+    });
+    strip.el.appendChild(grid);
+  }
+
+  async function loadRecentUploads() {
+    try {
+      const res = await fetch('/api/list-uploads');
+      const data = await res.json();
+      recentUrls = data.urls || [];
+    } catch {
+      recentUrls = [];
+    }
+  }
+
+  async function refreshAllStrips() {
+    await loadRecentUploads();
+    allStrips.forEach(renderStrip);
+  }
+  // ── End recent uploads gallery ──────────────────────────────────────────
+
+  (async () => {
+    await loadRecentUploads();
+    document.querySelectorAll('[data-upload-for]').forEach(initImageField);
+  })();
   // ── End image field manager ─────────────────────────────────────────────
 
   // Save
