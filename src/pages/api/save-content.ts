@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import fs from 'fs';
 import path from 'path';
+import { LIVE_CONTENT_PATH } from '../../utils/content';
 
 export const prerender = false;
 
@@ -15,8 +16,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   try {
     const body = await request.json();
-    const contentPath = path.join(process.cwd(), 'src', 'data', 'content.json');
-    fs.writeFileSync(contentPath, JSON.stringify(body, null, 2), 'utf-8');
+    const dir = path.dirname(LIVE_CONTENT_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(LIVE_CONTENT_PATH, JSON.stringify(body, null, 2), 'utf-8');
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

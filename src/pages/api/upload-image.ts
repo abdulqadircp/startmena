@@ -1,10 +1,9 @@
 import type { APIRoute } from 'astro';
 import fs from 'fs';
 import path from 'path';
+import { UPLOAD_DIR } from '../../utils/content';
 
 export const prerender = false;
-
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   const adminPassword = import.meta.env.ADMIN_PASSWORD || 'admin123';

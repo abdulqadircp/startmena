@@ -40,11 +40,20 @@ export interface SiteContent {
   banner: Banner;
 }
 
-const CONTENT_PATH = path.join(process.cwd(), 'src', 'data', 'content.json');
+// DATA_DIR: set this env var on Railway and mount a Volume there.
+// Falls back to src/data so local dev works with no configuration.
+const DATA_DIR = process.env.DATA_DIR ?? path.join(process.cwd(), 'src', 'data');
+
+// The default shipped with the repo — used as fallback when the live file doesn't exist yet.
+const DEFAULT_CONTENT_PATH = path.join(process.cwd(), 'src', 'data', 'content.json');
+
+export const LIVE_CONTENT_PATH = path.join(DATA_DIR, 'content.json');
+export const UPLOAD_DIR        = path.join(DATA_DIR, 'uploads');
 
 /** Always reads from disk so admin edits are reflected without a restart. */
 export function getContent(): SiteContent {
-  return JSON.parse(fs.readFileSync(CONTENT_PATH, 'utf-8'));
+  const filePath = fs.existsSync(LIVE_CONTENT_PATH) ? LIVE_CONTENT_PATH : DEFAULT_CONTENT_PATH;
+  return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 }
 
 export function whatsappUrl(site: SiteContent['site']): string {

@@ -17,8 +17,8 @@ pnpm-debug.log*
 .env
 .env.production
 
-# uploaded images (runtime, not source)
-uploads/
+# uploaded images (runtime, not source) — only ignore the root-level uploads dir
+/uploads/
 
 # macOS-specific files
 .DS_Store
