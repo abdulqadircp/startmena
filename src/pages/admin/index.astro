@@ -265,10 +265,11 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
         <div class="field">
           <div class="img-upload">
             <input type="file" accept="image/*" data-upload-for="hero.background_image" />
-            <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop</div>
+            <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop<br/>PNG, JPG, WebP · Recommended: wide landscape photo</div>
             {content.hero.background_image && <img class="img-preview" src={content.hero.background_image} style="display:block" alt="Hero bg" />}
           </div>
           <input type="hidden" data-path="hero.background_image" value={content.hero.background_image} />
+          <p class="hint">The image will show behind a semi-transparent dark overlay. Use a high-contrast or landscape photo for best results.</p>
         </div>
       </div>
     </div>
@@ -680,10 +681,15 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
       try {
         const res  = await fetch('/api/upload-image', { method: 'POST', body: fd });
         const data = await res.json();
-        if (data.url) showImage(data.url);
-        else uploadText.innerHTML = origText;
-      } catch {
+        if (data.url) {
+          showImage(data.url);
+        } else {
+          uploadText.innerHTML = origText;
+          alert('Upload failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
         uploadText.innerHTML = origText;
+        alert('Upload failed: ' + err.message);
       }
     });
 
@@ -706,10 +712,15 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
         try {
           const res  = await fetch('/api/upload-image', { method: 'POST', body: fd });
           const data = await res.json();
-          if (data.url) showImage(data.url);
-          else uploadText.innerHTML = origText;
-        } catch {
+          if (data.url) {
+            showImage(data.url);
+          } else {
+            uploadText.innerHTML = origText;
+            alert('Upload failed: ' + (data.error || 'Unknown error'));
+          }
+        } catch (err) {
           uploadText.innerHTML = origText;
+          alert('Upload failed: ' + err.message);
         }
       });
 
