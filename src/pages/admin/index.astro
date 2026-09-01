@@ -677,12 +677,13 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
 
     function showImage(url) {
       hidden.value = url;
-      preview.src  = url;
       nameEl.textContent = url.split('/').pop();
       dimsEl.textContent = 'Loading…';
+      // Set onload BEFORE src so cached images don't skip the handler
       preview.onload = () => {
         dimsEl.textContent = preview.naturalWidth + ' × ' + preview.naturalHeight + ' px';
       };
+      preview.src = url;
       card.style.display = 'flex';
       uploadText.style.display = 'none';
       zone.classList.add('has-image');
