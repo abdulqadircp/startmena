@@ -687,15 +687,33 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
       }
     });
 
-    // "Change" re-opens the file picker
+    // "Change" opens a fresh off-screen file input — avoids CSS display:none conflict
     changeBtn.addEventListener('click', () => {
-      zone.classList.remove('has-image');   // briefly re-enable input
-      fileInput.style.display = '';
-      fileInput.click();
-      // restore has-image style after picker closes (if still has value)
-      fileInput.addEventListener('change', () => {
-        if (!hidden.value) zone.classList.remove('has-image');
-      }, { once: true });
+      const tmp = document.createElement('input');
+      tmp.type = 'file';
+      tmp.accept = 'image/*';
+      tmp.style.cssText = 'position:fixed;top:-200px;opacity:0;';
+      document.body.appendChild(tmp);
+
+      tmp.addEventListener('change', async () => {
+        const file = tmp.files[0];
+        tmp.remove();
+        if (!file) return;
+        const origText = uploadText.innerHTML;
+        uploadText.innerHTML = 'Uploading…';
+        const fd = new FormData();
+        fd.append('file', file);
+        try {
+          const res  = await fetch('/api/upload-image', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (data.url) showImage(data.url);
+          else uploadText.innerHTML = origText;
+        } catch {
+          uploadText.innerHTML = origText;
+        }
+      });
+
+      tmp.click();
     });
 
     // "Remove" wipes the image

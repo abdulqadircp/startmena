@@ -197,5 +197,6 @@ const { banner } = getContent();
     }
   }
 
-  document.addEventListener('DOMContentLoaded', initBanner);
+  // Astro module scripts run after DOM is ready — call directly, no DOMContentLoaded needed
+  initBanner();
 </script>
