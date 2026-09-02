@@ -232,7 +232,6 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
           <div class="img-upload" id="upload-logo">
             <input type="file" accept="image/*" data-upload-for="site.logo" />
             <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop<br/>PNG, JPG, SVG, WebP · Max 5MB</div>
-            {content.site.logo && <img class="img-preview" src={content.site.logo} style="display:block" alt="Logo" />}
           </div>
           <input type="hidden" data-path="site.logo" value={content.site.logo} />
           <p class="hint">Leave empty to use text logo.</p>
@@ -281,7 +280,6 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
           <div class="img-upload">
             <input type="file" accept="image/*" data-upload-for="hero.background_image" />
             <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop<br/>PNG, JPG, WebP · Recommended: wide landscape photo</div>
-            {content.hero.background_image && <img class="img-preview" src={content.hero.background_image} style="display:block" alt="Hero bg" />}
           </div>
           <input type="hidden" data-path="hero.background_image" value={content.hero.background_image} />
           <p class="hint">The image will show behind a semi-transparent dark overlay. Use a high-contrast or landscape photo for best results.</p>
@@ -320,7 +318,6 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
           <div class="img-upload">
             <input type="file" accept="image/*" data-upload-for="about.image" />
             <div class="img-upload-text"><strong>Click to upload</strong> or drag and drop</div>
-            {content.about.image && <img class="img-preview" src={content.about.image} style="display:block" alt="About" />}
           </div>
           <input type="hidden" data-path="about.image" value={content.about.image} />
           <p class="hint">Displayed alongside the about text. Leave empty to show the stats grid only.</p>
@@ -645,9 +642,6 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
     const zone     = fileInput.closest('.img-upload');
     const hidden   = document.querySelector('[data-path="' + pathKey + '"]');
     const uploadText = zone.querySelector('.img-upload-text');
-
-    // Remove any server-rendered preview; we build the card structure in JS
-    zone.querySelector('.img-preview')?.remove();
 
     // Compact image card: [thumbnail] [filename + dimensions]
     const card     = document.createElement('div');
