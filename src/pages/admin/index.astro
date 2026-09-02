@@ -637,6 +637,9 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
   }
 
   // ── Image field manager ────────────────────────────────────────────────
+  let recentUrls = [];
+  const allStrips = [];
+
   function initImageField(fileInput) {
     const pathKey  = fileInput.dataset.uploadFor;
     const zone     = fileInput.closest('.img-upload');
@@ -775,9 +778,6 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
   }
 
   // ── Recent uploads gallery ─────────────────────────────────────────────
-  let recentUrls = [];
-  const allStrips = [];
-
   function renderStrip(strip) {
     strip.el.innerHTML = '';
     if (recentUrls.length === 0) return;
@@ -818,10 +818,10 @@ if (Astro.request.method === 'POST' && new URL(Astro.request.url).pathname === '
   }
   // ── End recent uploads gallery ──────────────────────────────────────────
 
-  (async () => {
-    await loadRecentUploads();
-    document.querySelectorAll('[data-upload-for]').forEach(initImageField);
-  })();
+  // Initialise fields immediately so server-rendered previews are replaced at once
+  document.querySelectorAll('[data-upload-for]').forEach(initImageField);
+  // Load recent uploads in background, then populate the strips
+  loadRecentUploads().then(() => allStrips.forEach(renderStrip));
   // ── End image field manager ─────────────────────────────────────────────
 
   // Save
